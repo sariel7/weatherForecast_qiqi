@@ -1,0 +1,29 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.a12541.wf">
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!--所有活动都要在注册表中注册-->
+
+    <application
+        android:name="pku.qixiangyang.weather.app.MyApplication"
+        android:allowBackup="true"
+        android:label="天气预报"
+        android:icon="@mipmap/icon01"
+        android:roundIcon="@mipmap/icon01"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".SelectCity">
+        </activity>
+
+    </application>
+
+</manifest>

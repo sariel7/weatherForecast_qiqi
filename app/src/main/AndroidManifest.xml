@@ -1,28 +1,54 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.a12541.wf">
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+
+    <!--
+    <uses-permission android:name="android.permission.ACCEPT_HANDOVER STATE" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    -->
 
     <!--所有活动都要在注册表中注册-->
 
     <application
         android:name="pku.qixiangyang.weather.app.MyApplication"
         android:allowBackup="true"
-        android:label="天气预报"
         android:icon="@mipmap/icon01"
+        android:label="天气预报"
         android:roundIcon="@mipmap/icon01"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
         <activity android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".SelectCity">
-        </activity>
+        <activity android:name=".SelectCity" />
+
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote"></service>
+
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="olY6lStaLGHQSyp4QPzAwN2uoyVzM0Cq"></meta-data>
 
     </application>
 

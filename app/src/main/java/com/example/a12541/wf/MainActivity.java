@@ -8,9 +8,13 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -25,6 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import pku.qixiangyang.weather.Bean.TodayWeather;
+import pku.qixiangyang.weather.app.MyApplication;
 import pku.qixiangyang.weather.util.NetUtil;
 
 /**
@@ -33,6 +38,8 @@ import pku.qixiangyang.weather.util.NetUtil;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private RotateAnimation animation;
+
     private static final int UPDATE_TODAY_WEATHER = 1;
 
     private String cityCode;
@@ -40,6 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView buttManager, buttLocation, buttShare, buttUpdate, imgFell, imgWeatherKind;
     private TextView textTitleCityName, textCityName, textPushTime, texthHumidity, text_PM_title,
             text_PM_number, text_PM_fell, textDate, textTemperature, textWeatherKind, textWindPower;
+
+    public LocationClient mLocationClient = null;
+    private MyLocationListener myListener = new MyLocationListener();
+
 
     private Handler mHandler = new Handler() {
         //这是主线程
@@ -77,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttUpdate.setOnClickListener(this);
         //与之匹配的是onClick()
 
+        mLocationClient = new LocationClient(getApplicationContext());
+        mLocationClient.registerLocationListener(myListener);
+
         //判断有没有网，这也就是为什么要把getNetworkState的原因
         if (NetUtil.getNetworkState(this) != NetUtil.NETWORK_NONE) {
             //记录在日志文件里
@@ -90,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         initView();
+        initLocation();
 
     }
 
@@ -121,18 +136,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textWindPower.setText("那你点刷新啊！");
 
         cityCode = "101010100";
+        animation = new RotateAnimation(0, 359, RotateAnimation.RELATIVE_TO_SELF, 0.5f, RotateAnimation.RELATIVE_TO_SELF, 0.5f);
     }
 
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.title_location) {
+            if (mLocationClient.isStarted()) {
+                mLocationClient.stop();
+            }
+            mLocationClient.start();
+            final Handler BDHandler = new Handler() {
+                public void handleMessage(Message msg) {
+                    switch (msg.what) {
+                        case DB:
+                            if (msg.obj != null) {
+                                if (NetUtil.getNetworkState(MainActivity.this) != NetUtil.NETWORK_NONE) {
+                                    Log.d("myWeather", "网络ok");
+                                    queryWeatherCode(myListener.cityCode);
+                                } else {
+                                    Log.d("myWeather", "网络挂了");
+                                    Toast.makeText(MainActivity.this, "网络挂了！", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        default:
+                            break;
+                    }
+                }
+            };
         }
-        if (view.getId() == R.id.title_share) {
+        if (view.getId() == R.id.title_share){
         }
         if (view.getId() == R.id.title_update) {
-            //SharedPreferences sharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
-            //String cityCode = sharedPreferences.getString("main_city_code", "101010100");
+            SharedPreferences sharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
+            String cityCode = sharedPreferences.getString("main_city_code", "101010100");
+            /*
             Log.d("当前cityCode：", cityCode);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            */
 
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORK_NONE) {
                 Log.d("netState", "网络ok");
@@ -148,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //原来是startActivitu(i)来着,也能跳转
             startActivityForResult(i, 1);
         }
+
     }
 
     //这个函数可以获取到网络数据
@@ -302,22 +354,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    /*
-     * startActivityForResult(Intent intent, int requestCode);
-     * 　　 第一个参数：一个Intent对象，用于携带将跳转至下一个界面中使用的数据，使用putExtra(A,B)方法，此处存储的数据类型特别多，基本类型全部支持。
-     * 　　 第二个参数：如果> = 0,当Activity结束时requestCode将归还在onActivityResult()中。以便确定返回的数据是从哪个Activity中返回，用来标识目标activity。
-     * 　　与下面的resultCode功能一致，感觉Android就是为了保证数据的严格一致性特地设置了两把锁，来保证数据的发送，目的地的严格一致性。
-     *
-     * onActivityResult(int requestCode, int resultCode, Intent data)
-     * 　　第一个参数：这个整数requestCode用于与startActivityForResult中的requestCode中值进行比较判断，是以便确认返回的数据是从哪个Activity返回的。
-     * 　　第二个参数：这整数resultCode是由子Activity通过其setResult()方法返回。适用于多个activity都返回数据时，来标识到底是哪一个activity返回的值。
-     * 　　第三个参数：一个Intent对象，带有返回的数据。可以通过data.getXxxExtra( );方法来获取指定数据类型的数据，
-     *
-     * setResult(int resultCode, Intent data)
-     * 　　在意图跳转的目的地界面调用这个方法把Activity想要返回的数据返回到主Activity，
-     * 　　第一个参数：当Activity结束时resultCode将归还在onActivityResult()中，一般为RESULT_CANCELED , RESULT_OK该值默认为-1。
-     * 　　第二个参数：一个Intent对象，返回给主Activity的数据。在intent对象携带了要返回的数据，使用putExtra( )方法
-     */
+    private void initLocation() {
+        LocationClientOption option = new LocationClientOption();
+        // 就是这个方法设置为 true ，才能获取当前的位置信息
+        option.setIsNeedAddress(true);
+        option.setOpenGps(true);
+        option.setLocationNotify(true);
+        option.setIsNeedLocationDescribe(true);
+        option.setIsNeedLocationPoiList(true);
+        option.setIgnoreKillProcess(false);
+        option.SetIgnoreCacheException(false);
+        option.setEnableSimulateGps(false);
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        // 可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
+        option.setCoorType("gcj02");
+        // 可选，默认 gcj02 ，设置返回的定位结果坐标系
+        int span = 1000;
+        option.setScanSpan(span);
+        // 可选，默认 0 ，即仅定位一次，设置发起定 位请求的间隔需要大于等于 1000ms 才是有效的
+        mLocationClient.setLocOption(option);
+    }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK) {
